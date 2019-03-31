@@ -10,17 +10,19 @@
   function librarySystem(libraryName, dependencies, callback) {
     if (arguments.length > 2) { // creating a new library
       
-      libraryStorage[libraryName] = callback;
-      dependencyTracker[libraryName] = dependencies;
-      runOnceTracker[libraryName] = false;
+      libraryStorage[libraryName] = {
+        callback: callback,
+        dependencies: dependencies,
+        hasBeenCalled: false
+      }
     
     } else { // using an existing library
       
-      if (runOnceTracker[libraryName] === false) {
-        runOnceTracker[libraryName] = true; // change value in runOnceTracker so the library cannot be called again
+      if (libraryStorage[libraryName].hasBeenCalled === false) {
+        libraryStorage[libraryName].hasBeenCalled = true; // change value to true so the library cannot be called again
 
-        return libraryStorage[libraryName].apply(this, dependencyTracker[libraryName].map(function(dependency) {
-          return libraryStorage[dependency]();
+        return libraryStorage[libraryName].callback.apply(this, libraryStorage[libraryName].dependencies.map(function(dependency) {
+          return libraryStorage[dependency].callback();
         }));
       
       } else {
@@ -35,17 +37,15 @@
 })();
 
 tests({
-  'It should be able to create a library with no dependencies.': function() {
-    
+  'It should be able to create a library with no dependencies.': function() {  
     librarySystem('regularLibrary', [], function() {
       return 'regular library';
     });
 
     eq(librarySystem('regularLibrary'), 'regular library');
-
   },
+  
   'It should be able to create a library whose dependencies have already been created.': function() {
-    
     librarySystem('dependency1', [], function() {
       return 2;
     });
@@ -59,10 +59,9 @@ tests({
     });
 
     eq(librarySystem('dependenciesFirstLibrary'), 5);
-
   },
-  'It should be able to create a library even if its dependencies have not been created yet.': function() {
-    
+  
+  'It should be able to create a library even if its dependencies have not been created yet.': function() {    
     librarySystem('dependenciesAfterLibrary', ['dependency3', 'dependency4'], function(a, b) {
       return a + b;
     });
@@ -76,10 +75,9 @@ tests({
     });
 
     eq(librarySystem('dependenciesAfterLibrary'), 5);
-
   },
+  
   'It should only run the callback function for a library once, regardless of how many times the library is called.': function() {
-
     var numTimesRun = 0;
 
     librarySystem('runOnceLibrary', [], function() {
@@ -91,7 +89,6 @@ tests({
     librarySystem('runOnceLibrary');
 
     eq(numTimesRun, 1);
-
   }
 });
 
