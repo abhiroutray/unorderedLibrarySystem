@@ -3,9 +3,7 @@
 
 (function() {
   
-  var libraryStorage = {}; // stores each library as a property of libraryStorage
-  var dependencyTracker = {}; // stores each array of dependencies as a property of dependencyTracker
-  var runOnceTracker = {}; // if the library has been called, i.e. a call like librarySystem('myLib') has been made, myLib's corresponding property in runOnceTracker will be true
+  var libraryStorage = {};
 
   function librarySystem(libraryName, dependencies, callback) {
     if (arguments.length > 2) { // creating a new library
